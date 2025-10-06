@@ -6,5 +6,6 @@ export const todos = s.sqliteTable("todos", {
   detail: s.text("detail").notNull(),
   createdAt: s
     .integer("created_at", { mode: "timestamp" })
-    .$defaultFn(() => new Date()),
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
