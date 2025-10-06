@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/libsql";
-import { users } from "./schema";
+import { todos } from "./schema";
 
 const db = drizzle({
   connection: {
@@ -8,5 +8,5 @@ const db = drizzle({
   },
 });
 
-const result = await db.select().from(users);
+const result = await db.select().from(todos);
 console.log(result);
