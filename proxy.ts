@@ -39,15 +39,23 @@ const route = app
       return c.text("Created", 201);
     },
   )
-  .delete("/todos/:id", async (c) => {
-    const id = c.req.param("id");
-    console.log(id);
-    if (!id) {
-      return c.text("Invalid ID", 400);
-    }
-    const result = await db.delete(todos).where(eq(todos.id, Number(id)));
-    return c.text("Deleted", 200);
-  });
+  .delete(
+    "/todos/:id",
+    zValidator(
+      "param",
+      z.object({
+        id: z.coerce.number(),
+      }),
+    ),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      if (!id) {
+        return c.text("Invalid ID", 400);
+      }
+      const result = await db.delete(todos).where(eq(todos.id, id));
+      return c.text("Deleted", 200);
+    },
+  );
 
 export default app;
 export type AppType = typeof route;
