@@ -6,7 +6,7 @@
     "build": "react-router build",
     "cf-typegen": "wrangler types",
     "deploy": "bun run build && wrangler deploy",
-    "dev": "concurrently \"bun run proxy.ts\" \"react-router dev\"",
+    "dev": "concurrently \"bun --hot run proxy.ts\" \"react-router dev\"",
     "postinstall": "npm run cf-typegen",
     "preview": "bun run build && vite preview",
     "typecheck": "npm run cf-typegen && react-router typegen && tsc -b"

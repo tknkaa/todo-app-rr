@@ -4,6 +4,7 @@ import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 const app = new Hono();
 
@@ -37,7 +38,16 @@ const route = app
       console.log(result);
       return c.text("Created", 201);
     },
-  );
+  )
+  .delete("/todos/:id", async (c) => {
+    const id = c.req.param("id");
+    console.log(id);
+    if (!id) {
+      return c.text("Invalid ID", 400);
+    }
+    const result = await db.delete(todos).where(eq(todos.id, Number(id)));
+    return c.text("Deleted", 200);
+  });
 
 export default app;
 export type AppType = typeof route;
