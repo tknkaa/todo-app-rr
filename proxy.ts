@@ -25,14 +25,14 @@ const route = app
   .post(
     "/todos",
     zValidator(
-      "form",
+      "json",
       z.object({
         detail: z.string(),
       }),
     ),
     async (c) => {
       const result = await db.insert(todos).values({
-        detail: c.req.valid("form").detail,
+        detail: c.req.valid("json").detail,
         isDone: false,
       });
       console.log(result);
@@ -54,6 +54,30 @@ const route = app
       }
       const result = await db.delete(todos).where(eq(todos.id, id));
       return c.text("Deleted", 200);
+    },
+  )
+  .patch(
+    "/todos/:id",
+    zValidator(
+      "param",
+      z.object({
+        id: z.coerce.number(),
+      }),
+    ),
+    zValidator(
+      "json",
+      z.object({
+        isDone: z.boolean(),
+      }),
+    ),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const { isDone } = c.req.valid("json");
+      const result = await db
+        .update(todos)
+        .set({ isDone: isDone })
+        .where(eq(todos.id, id));
+      return c.text("Updated", 200);
     },
   );
 

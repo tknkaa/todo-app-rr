@@ -36,21 +36,30 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const method = formData.get("_method") as string;
   const detail = formData.get("detail") as string;
-  const id = formData.get("id") as string;
-  console.log(method);
+  const deleteId = formData.get("delete-id") as string;
+  const patchId = formData.get("patch-id") as string;
 
   if (env.NODE_ENV == "development") {
     const proxy = hc<AppType>("http://localhost:3000/");
     if (method === "delete") {
       const _res = await proxy.todos[":id"].$delete({
         param: {
-          id: id,
+          id: deleteId,
         },
       });
     } else if (method === "post") {
       const _res = await proxy.todos.$post({
-        form: {
+        json: {
           detail: detail,
+        },
+      });
+    } else if (method === "patch") {
+      const _res = await proxy.todos[":id"].$patch({
+        param: {
+          id: patchId,
+        },
+        json: {
+          isDone: true,
         },
       });
     } else {
@@ -66,12 +75,19 @@ export async function action({ request, context }: Route.ActionArgs) {
     client,
   });
   if (method === "delete") {
-    const _res = await db.delete(todos).where(eq(todos.id, Number(id)));
+    const _res = await db.delete(todos).where(eq(todos.id, Number(deleteId)));
   } else if (method === "post") {
     const _res = await db.insert(todos).values({
       detail: detail,
       isDone: false,
     });
+  } else if (method === "patch") {
+    const _res = await db
+      .update(todos)
+      .set({
+        isDone: true,
+      })
+      .where(eq(todos.id, Number(patchId)));
   } else {
     console.error("no method specified");
   }
@@ -84,13 +100,24 @@ export default function Page({ loaderData }: Route.ComponentProps) {
     <>
       {todos.map((todo) => (
         <div key={todo.id}>
-          {todo.detail}:{todo.isDone ? "Completed" : "Pending"} created at{" "}
-          {todo.createdAt}
+          {todo.detail}:created at {todo.createdAt}
           <Form method="post" style={{ display: "inline" }}>
             <input type="hidden" name="_method" value="delete" />
-            <input type="hidden" name="id" value={todo.id} />
+            <input type="hidden" name="delete-id" value={todo.id} />
             <button type="submit">delete</button>
           </Form>
+          {!todo.isDone ? (
+            <>
+              <div>Pending</div>
+              <Form method="post" style={{ display: "inline" }}>
+                <input type="hidden" name="_method" value="patch" />
+                <input type="hidden" name="patch-id" value={todo.id} />
+                <button type="submit">mark as Completed</button>
+              </Form>
+            </>
+          ) : (
+            "Completed"
+          )}
         </div>
       ))}
       <Form method="post" onSubmit={() => setDetail("")}>
