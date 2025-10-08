@@ -7,6 +7,7 @@ import { hc } from "hono/client";
 import { Form } from "react-router";
 import { useState } from "react";
 import { eq } from "drizzle-orm";
+import { UNSAFE_getTurboStreamSingleFetchDataStrategy } from "react-router";
 
 export async function loader({ context }: Route.LoaderArgs) {
   const { env } = context.cloudflare;
@@ -98,37 +99,64 @@ export default function Page({ loaderData }: Route.ComponentProps) {
   const todos = loaderData;
   return (
     <>
-      {todos.map((todo) => (
-        <div key={todo.id}>
-          {todo.detail}:created at {todo.createdAt}
-          <Form method="post" style={{ display: "inline" }}>
-            <input type="hidden" name="_method" value="delete" />
-            <input type="hidden" name="delete-id" value={todo.id} />
-            <button type="submit">delete</button>
-          </Form>
-          {!todo.isDone ? (
-            <>
-              <div>Pending</div>
-              <Form method="post" style={{ display: "inline" }}>
-                <input type="hidden" name="_method" value="patch" />
-                <input type="hidden" name="patch-id" value={todo.id} />
-                <button type="submit">mark as Completed</button>
-              </Form>
-            </>
-          ) : (
-            "Completed"
-          )}
-        </div>
-      ))}
-      <Form method="post" onSubmit={() => setDetail("")}>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>detail</th>
+            <th>created at</th>
+            <th>status</th>
+            <th>actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {todos.map((todo) => (
+            <tr key={todo.id} className="list-row">
+              <td>{todo.detail}</td>
+              <td>{new Date(todo.createdAt).toDateString()}</td>
+              {!todo.isDone ? (
+                <>
+                  <td>Pending</td>
+                  <td>
+                    <Form method="post" style={{ display: "inline" }}>
+                      <input type="hidden" name="_method" value="patch" />
+                      <input type="hidden" name="patch-id" value={todo.id} />
+                      <button type="submit" className="btn">
+                        mark as Completed
+                      </button>
+                    </Form>
+                  </td>
+                </>
+              ) : (
+                <>
+                  <td>Completed</td>
+                  <td>
+                    <Form method="post">
+                      <input type="hidden" name="_method" value="delete" />
+                      <input type="hidden" name="delete-id" value={todo.id} />
+                      <button type="submit" className="btn">
+                        delete
+                      </button>
+                    </Form>
+                  </td>
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Form method="post" onSubmit={() => setDetail("")} className="flex gap-2">
         <input type="hidden" name="_method" value="post" />
         <input
           type="text"
           name="detail"
+          className="input"
+          placeholder="create new Todo"
           value={detail}
           onChange={(e) => setDetail(e.target.value)}
         />
-        <button type="submit">submit</button>
+        <button type="submit" className="btn">
+          submit
+        </button>
       </Form>
     </>
   );
